@@ -249,28 +249,194 @@ null设备通常被称为位桶(bit bucket)或黑洞。
 
 ```
 
+**重定向文件补充**
+```text
+1. 将文件重定向到命令
+$cmd < file
+2. 冲定向脚本内部的文本块（需要项标准输入一样进行重定向）
+例子(将脚本内EOF之前的内容定向到log.txt)
+#!/bin/bash
+cat <<EOF>log.txt
+LOG FILE HEADER
+This is a test log file
+Function:System statistics
+EOF
 
 
 
+```
+
+[重定向脚本内部的文本块](files/redirectionFile.sh)
+
+## 数组
+```text
+  Bash同时支持普通数组和关联数组，普通数组只能使用整数作为数组索引，而关联数组可以使用字符串作为数组索引
+关联数组在很多操作当中相当有用，Bash从4.0版本开始支持关联数组。
+
+[root@xx shell]# array_var=(1 2 3 4 5 6)
+[root@xx shell]# echo ${array_var[0]}
+1
+[root@xx shell]# index=3
+[root@xx shell]# echo ${array_var[${index}]}}
+4}
+[root@xx shell]# echo ${array_var[${index}]}
+4
+[root@xx shell]# echo ${array_var[${index}]}
+4
+[root@xx shell]# echo ${array_var[${index}]}
+4
+[root@xx shell]# echo ${array_var[${index}]}
+4
+[root@xx shell]# echo ${array_var[*]}
+1 2 3 4 5 6
+
+关联数组
+和普通数组的区别是关联数组可以使用任意的文本作为数组的索引。
+首先需要使用单独的声明语句将一个变量生命位关联数组
+declare -A ass_array
+声明之后可以使用两种方法将元素添加到关联数组中
+1.利用内嵌索引-值的列表法：
+ass_rray=([index1]=value1 [index2]=value2)
+2. 使用独立的索引-值进行赋值：
+ass_array[index1]=value1
+ass_array[index2]=value2
+例子：
+[root@xx shell]# declare -A ass_array
+[root@xx shell]# ass_array=([index1]=values [index2]=value2)
+[root@xx shell]# echo ${!ass_array[*]}
+index1 index2
+[root@xx shell]# echo ${!ass_array[*]}
+index1 index2
+[root@xx shell]# echo ${ass_array[*]}
+values value2
+[root@xx shell]# echo ${!ass_array[@]}
+index1 index2
+[root@xx shell]# echo ${!ass_array[@]}
+index1 index2
+
+```
+
+## 日期
+
+```text
+  使用date命令可以的一个UTC，又称为世界标准时间或者世界协调时间
+[root@xx ~]# date
+Thu Jun 18 08:56:36 CST 2020
+使用date +%s可以得到1970-1月-1日0时0分0秒起至当前时刻的总秒数，--date用于提供日期串作为输入。但是我们
+可以使用任意的日期格式化选项来打印输出。将日期串作为输入的能够用来获取给定日期的日期时星期几。
+[root@xx ~]# date --date 'Thu Jun 18 08:56:36 CST 2020' +%s
+1592441796
+
+```
 
 
+**日期的格式**
+```text
+% Y 年（例如：1970，2018等） 
+
+% m 月（01..12）
+
+% d 一个月的第几天（01..31）
+
+% H 小时（00..23）
+
+% M 分（00..59）
+
+% S 秒（00..59）
+```
+
+[计算程序执行所耗掉的时长](files/myDate.sh)
 
 
+## 调试脚本
+```shell script
+使用选项-x，启动调式shell脚本
+bash -x script.sh
+-x标识将脚本中执行过的每一行都输出到stdout.不过，我们可以要求之关注脚本某些部分的命令参数的打印输出。
+* set -x:在执行的时候显示参数和命令
+* set +X:禁止调试
+* set -V: 当命令进行读取时显示输入
+* set +v:禁止打印输入
+例子：
+#!/bin/bash
+function DEBUG()
+{
+# $@表示获取所有参数，":"告诉shell不要进行任何操作
+[ "$_DEBUG" == "on" ] && $@ || :
+}
+for i in {1..10}
+do
+DEBUG echo $i
+done
 
+执行结果:
+[root@xx shell]# _DEBUG="on" sh debugScript.sh 
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
 
+注意：
+:(){ :|:& };:这是一个fork炸弹
+```
 
+## 定义函数
+```shell script
+Bash也可以像其他语言一样实现函数的定义
+例如
+[root@xx shell]# fname() { echo $1,$2; }
+[root@xx shell]# fname parameter1 parameter2
+parameter1,parameter2
+通过上面的例子我们可以知道可以使用函数名直接调用，在后面添加参数(参数之间使用空格隔开即可)
+* $1 是第一个参数
+* $2是第二个参数
+* $n是第n个参数
+* $@ 是获取所有的参数的列表
+* $* 将获取到的所有的参数当作一个字符串
 
+```
 
+**导出函数**
+```shell script
+shell中的函数可以像环境变量一样使用export导出，如此依赖，函数的作用域就可以扩展到子进程中
+#定义函数
+fname(){echo $1,$2}
+#导出函数
+export -f fname
+```
 
+[导入函数](files/exportFunction.sh)
 
+**读取命令返回值**
+```shell script
+可以按照下面的方式获取命令或者函数的返回值：
+cmd;
+echo $?;
+$?会给出命令cmd的返回值。
+返回值被称为退出状态。它可以用于分析执行成功与否。如果命令成功退出，那么退出状态为0，否则为非0.
+例子
+#!/bin/bash
+CMD="ls /"
+status
+$CMD
+if [ $? -eq 0 ];
+then 
+echo "$CMD executed successfully"
+else
+echo "$CMD terminated unsuccessfully"
+fi 
+运行结果:
+[root@xx shell]# ./success_test.sh 
+bin  boot  chendom  data  dev  dump.rdb  etc  home  lib  lib64	lost+found  media  mnt	opt  proc  root  run  sbin  srv  sys  tmp  tmp10cdcbd3-dc25-4339-8d8e-6526dfe77edb.jpg	tmpd0d92061-9796-402b-ab65-2bd46b783cd8.jpg  usr  var
+ls / executed successfully
 
-
-
-
-
-
-
-
+```
 
 
 
