@@ -439,6 +439,235 @@ ls / executed successfully
 ```
 
 
+## 读取命令序列的输出
+```text
+  Shell脚本最好的额地方就是可以轻松的将多个命令或者工具组合起来生成输出。一个命令的输出可以作为另一个命令的输入，而
+这个命令的输出又会称为另一个命令的输入。这种命令组合的输出可以存储在一个变量当中。
+  输入通常是通过stdin或参数传递给命令。输出要么出现在stderr,要么出现在stdout。当我们组合多个命令时，同时将stdin用于
+输入，stdout用于输出。 这些命令被称为过滤器(filter)。我们使用管道(pipe)来连接每一个过滤器。管道操作符是"|".
+例如$ cmd1 | cmd2 | cmd3 cmd1的输出传递给cmd2.而cmd2的输出传递给cmd3.
+
+[root@xx shell]# ls | cat -n > out
+[root@xx shell]# cat out.txt 
+     1	bin
+     2	boot
+     3	chendom
+     4	data
+     5	dev
+     6	dump.rdb
+     7	etc
+     8	home
+     9	lib
+    10	lib64
+    11	lost+found
+    12	media
+    13	mnt
+    14	opt
+    15	proc
+    16	root
+    17	run
+    18	sbin
+    19	srv
+    20	sys
+    21	tmp
+    22	tmp10cdcbd3-dc25-4339-8d8e-6526dfe77edb.jpg
+    23	tmpd0d92061-9796-402b-ab65-2bd46b783cd8.jpg
+    24	usr
+    25	var
+
+
+```
+
+**利用子shell生成独立的进程**
+```text
+  子shell本身就是独立的进程。可以使用()操作符来定义一个子shell。
+例子：
+#!/bin/bash
+pwd
+(cd /bin; ls)
+pwd
+执行结果:
+
+[root@xx shell]# ./subShell.sh 
+/usr/shell
+[		    cpio		   flock		  httxt2dbm		lsns		    nl-classid-lookup	  pkill			    renice		   split			   umount
+a2p		    cpp			   fmt			  i386			lsscsi		    nl-class-list	  pkla-admin-identities     repoclosure		   sprof			   unalias
+ab		    cpupower		   fold			  iconv			lua		    nl-cls-add		  pkla-check-authorization  repodiff		   sqlite3			   uname
+addr2line	    crlutil		   free			  id			luac		    nl-cls-delete	  pkttyagent		    repo-graph		   ssh				   unexpand
+alias		    crontab		   g++			  idiag-socket-details	m4		    nl-cls-list		  pl2pm			    repomanage		   ssh-add			   unicode_start
+apropos		    csplit		   gapplication		  idn			machinectl	    nl-fib-lookup	  pldd			    repoquery		   ssh-agent			   unicode_stop
+ar		    csslint-0.6		   gawk			  igawk			mail		    nl-link-enslave	  plymouth		    repo-rss		   ssh-copy-id			   uniq
+arch		    ctr			   gcc			  info			Mail		    nl-link-ifindex2name  pmap			    reposync		   ssh-keygen			   unlink
+as		    curl		   gcc-ar		  infocmp		mailq		    nl-link-list	  pod2html		    repotrack		   ssh-keyscan			   unshare
+aserver		    cut			   gcc-nm		  infokey		mailq.postfix	    nl-link-name2ifindex  pod2man		    reset		   ssltap			   unxz
+at		    date		   gcc-ranlib		  infotocap		mailx		    nl-link-release	  pod2text		    resizecons		   stat				   update-ca-trust
+atq		    db_archive		   gcov			  install		make		    nl-link-set		  pod2usage		    rev			   stdbuf			   update-mime-database
+atrm		    db_checkpoint	   gdbus		  install_compass	makedb		    nl-link-stats	  post-grohtml		    rm			   strace			   uptime
+audit2allow	    db_deadlock		   gencat		  ionice		man		    nl-list-caches	  powernow-k8-decode	    rmail		   strace-log-merge		   urlgrabber
+audit2why	    db_dump		   genl-ctrl-list	  iostat		mandb		    nl-list-sockets	  pr			    rmail.postfix	   strings			   users
+aulast		    db_dump185		   geoiplookup		  ipcalc		manpath		    nl-monitor		  preconv		    rmdir		   strip			   usleep
+aulastlog	    db_hotbackup	   geoiplookup6		  ipcmk			mapscrn		    nl-neigh-add	  pre-grohtml		    rpcgen		   stty				   usx2yloader
+ausyscall	    dbilogstrip		   geoipupdate		  ipcrm			markdown_py	    nl-neigh-delete	  printenv		    rpm			   su				   utmpdump
+auvirt		    dbiprof		   geqn			  ipcs			mcookie		    nl-neigh-list	  printf		    rpm2cpio		   sudo				   uuclient
+awk		    dbiproxy		   getconf		  iptables-xml		md5sum		    nl-neightbl-list	  prlimit		    rpmdb		   sudoedit			   uuidgen
+base64		    db_load		   getent		  isosize		mesg		    nl-pktloc-lookup	  prtstat		    rpmkeys		   sudoreplay			   vdir
+basename	    db_log_verify	   getfacl		  jobs			mixartloader	    nl-qdisc-add	  ps			    rpmquery		   sum				   verifytree
+bash		    db_printlog		   getkeycodes		  join			mkdir		    nl-qdisc-delete	  psed			    rpmverify		   sx				   vi
+bashbug		    db_recover		   getopt		  journalctl		mkfifo		    nl-qdisc-list	  psfaddtable		    rsyslog-recover-qi.pl  sync				   view
+bashbug-64	    db_replicate	   getopts		  jsondiff		mkinitrd	    nl-route-add	  psfgettable		    runc		   systemctl			   vim
+batch		    db_stat		   gettext		  jsonpatch		mknod		    nl-route-delete	  psfstriptable		    runcon		   systemd-analyze		   vimdiff
+bc		    db_tuner		   gettext.sh		  jsonpointer		mktemp		    nl-route-get	  psfxtable		    run-parts		   systemd-ask-password		   vimtutor
+bg		    db_upgrade		   gio			  kbdinfo		modutil		    nl-route-list	  pstree		    rvi			   systemd-cat			   vlock
+bond2team	    dbus-binding-tool	   gio-querymodules-64	  kbd_mode		mongo		    nl-rule-list	  pstree.x11		    rview		   systemd-cgls			   vmstat
+bootctl		    dbus-cleanup-sockets   glib-compile-schemas   kbdrate		mongod		    nl-tctree-list	  pstruct		    rvim		   systemd-cgtop		   vxloader
+bsondump	    dbus-daemon		   gmake		  kdumpctl		mongodump	    nl-util-addr	  pt-align		    rx			   systemd-coredumpctl		   w
+busctl		    dbus-monitor	   gneqn		  kernel-install	mongoexport	    nm			  pt-archiver		    rz			   systemd-delta		   wait
+c++		    dbus-send		   gnroff		  kill			mongofiles	    nmcli		  ptaskset		    s2p			   systemd-detect-virt		   wall
+c2ph		    dbus-uuidgen	   gpasswd		  killall		mongoimport	    nm-online		  pt-config-diff	    sadf		   systemd-escape		   watch
+c89		    db_verify		   gpg			  kmod			mongorestore	    nmtui		  pt-deadlock-logger	    sandbox		   systemd-firstboot		   watchgnupg
+c99		    dc			   gpg2			  krb5-config		mongos		    nmtui-connect	  pt-diskstats		    sar			   systemd-hwdb			   wc
+cal		    dd			   gpg-agent		  last			mongostat	    nmtui-edit		  pt-duplicate-key-checker  sb			   systemd-inhibit		   wdctl
+ca-legacy	    deallocvt		   gpgconf		  lastb			mongotop	    nmtui-hostname	  pt-fifo-split		    scp			   systemd-loginctl		   wget
+cancel		    debuginfo-install	   gpg-connect-agent	  lastlog		more		    nohup		  pt-find		    script		   systemd-machine-id-setup	   whatis
+cancel.cups	    df			   gpg-error		  lchfn			mount		    nproc		  pt-fingerprint	    scriptreplay	   systemd-notify		   whereis
+captoinfo	    dgawk		   gpgparsemail		  lchsh			mountpoint	    nroff		  pt-fk-error-logger	    sdiff		   systemd-nspawn		   which
+cat		    diff		   gpgsplit		  ld			mpstat		    nsenter		  pt-heartbeat		    secon		   systemd-path			   whiptail
+catchsegv	    diff3		   gpgv			  ld.bfd		msgattrib	    ntpstat		  pt-index-usage	    sed			   systemd-run			   who
+catman		    dir			   gpgv2		  ldd			msgcat		    numfmt		  pt-ioprofile		    sedismod		   systemd-stdio-bridge		   whoami
+cc		    dircolors		   gpg-zip		  ld.gold		msgcmp		    objcopy		  pt-kill		    sedispol		   systemd-sysv-convert		   write
+cd		    dirname		   gpic			  less			msgcomm		    objdump		  pt-mext		    semodule_package	   systemd-tmpfiles		   x86_64
+centrino-decode     dmesg		   gprof		  lessecho		msgconv		    od			  pt-mongodb-query-digest   seq			   systemd-tty-ask-password-agent  x86_64-redhat-linux-c++
+certutil	    dnsdomainname	   grep			  lesskey		msgen		    oldfind		  pt-mongodb-summary	    setarch		   sz				   x86_64-redhat-linux-g++
+c++filt		    docker		   groff		  lesspipe.sh		msgexec		    open		  pt-mysql-summary	    setfacl		   tabs				   x86_64-redhat-linux-gcc
+chacl		    docker-compose	   grops		  lexgrog		msgfilter	    openssl		  pt-online-schema-change   setfont		   tac				   x86_energy_perf_policy
+chage		    dockerd		   grotty		  link			msgfmt		    openvt		  pt-pg-summary		    setkeycodes		   tail				   xargs
+chardetect	    docker-init		   groups		  linux32		msggrep		    os-prober		  pt-pmp		    setleds		   tailf			   xgettext
+chattr		    docker-proxy	   grub2-editenv	  linux64		msghack		    p11-kit		  pt-query-digest	    setmetamode		   tapestat			   xmlcatalog
+chcat		    domainname		   grub2-file		  linux-boot-prober	msginit		    package-cleanup	  pt-secure-collect	    setpriv		   tar				   xmllint
+chcon		    dracut		   grub2-fstest		  ln			msgmerge	    passwd		  pt-show-grants	    setsid		   taskset			   xmlwf
+checkmodule	    du			   grub2-glue-efi	  loadkeys		msgunfmt	    paste		  pt-sift		    setterm		   tbl				   xxd
+checkpolicy	    dumpkeys		   grub2-kbdcomp	  loadunimap		msguniq		    patch		  pt-slave-delay	    setup-nsssysinit	   teamd			   xz
+cheetah		    dwp			   grub2-menulst2cfg	  locale		mv		    pathchk		  pt-slave-find		    setup-nsssysinit.sh    teamdctl			   xzcat
+cheetah-analyze     easy_install	   grub2-mkfont		  localectl		nail		    pax			  pt-slave-restart	    setvtrgb		   teamnl			   xzcmp
+cheetah-compile     easy_install-2.7	   grub2-mkimage	  localedef		namei		    pchrt		  pt-stalk		    sftp		   tee				   xzdec
+chfn		    echo		   grub2-mklayout	  logger		nc		    pcre-config		  pt-summary		    sg			   test				   xzdiff
+chgrp		    ed			   grub2-mknetdir	  login			ncat		    peekfd		  pt-table-checksum	    sh			   testgdbm			   xzegrep
+chmod		    egrep		   grub2-mkpasswd-pbkdf2  loginctl		ndptool		    percona-release	  pt-table-sync		    sha1sum		   tic				   xzfgrep
+chown		    eject		   grub2-mkrelpath	  logname		needs-restarting    perl		  pt-table-usage	    sha224sum		   time				   xzgrep
+chronyc		    elfedit		   grub2-mkrescue	  logresolve		neqn		    perl5.16.3		  pt-upgrade		    sha256sum		   timedatectl			   xzless
+chrt		    env			   grub2-mkstandalone	  look			netstat		    perlbug		  pt-variable-advisor	    sha384sum		   timeout			   xzmore
+chsh		    envsubst		   grub2-script-check	  lp			newaliases	    perldoc		  pt-visual-explain	    sha512sum		   tload			   yes
+chvt		    eqn			   grub2-syslinux2cfg	  lp.cups		newaliases.postfix  perlthanks		  ptx			    show-changed-rco	   tmon				   ypdomainname
+cifsiostat	    ex			   gsettings		  lpoptions		newgrp		    pflags		  pwd			    showconsolefont	   toe				   yum
+cksum		    expand		   gsoelim		  lppasswd		nf-ct-add	    pgawk		  pwdx			    show-installed	   top				   yum-builddep
+clear		    expr		   gss-client		  lpq			nf-ct-list	    pgrep		  pwmake		    showkey		   touch			   yum-config-manager
+cloud-init	    factor		   gtar			  lpq.cups		nf-exp-add	    pic			  pwscore		    shred		   tput				   yum-debug-dump
+cloud-init-per	    fallocate		   gtbl			  lpr			nf-exp-delete	    piconv		  pydoc			    shuf		   tr				   yum-debug-restore
+cloud-init-upgrade  false		   gtroff		  lpr.cups		nf-exp-list	    pidstat		  python		    signtool		   tracepath			   yumdownloader
+cmp		    fc			   gunzip		  lprm			nf-log		    pinentry		  python2		    signver		   tracepath6			   yum-groups-manager
+cmsutil		    fg			   gzexe		  lprm.cups		nf-monitor	    pinentry-curses	  python2.7		    sim_client		   troff			   zcat
+col		    fgconsole		   gzip			  lpstat		nf-queue	    ping		  ranlib		    size		   true				   zcmp
+colcrt		    fgrep		   h2ph			  lpstat.cups		nfsiostat-sysstat   ping6		  raw			    skill		   truncate			   zdiff
+colrm		    file		   hdsploader		  ls			ngettext	    pinky		  rb			    slabtop		   trust			   zegrep
+column		    find		   head			  lsattr		nice		    pip			  read			    sleep		   tset				   zfgrep
+comm		    find2perl		   hexdump		  lsblk			nisdomainname	    pip2		  readelf		    slogin		   tsort			   zforce
+command		    findmnt		   hostid		  lsb_release		nl		    pip2.7		  readlink		    snice		   tty				   zgrep
+compile_et	    find-repos-of-install  hostname		  lscpu			nl-addr-add	    pk12util		  realpath		    soelim		   turbostat			   zipdetails
+containerd	    fipscheck		   hostnamectl		  lsinitrd		nl-addr-delete	    pkaction		  recode-sr-latin	    sort		   tzselect			   zless
+containerd-shim     fipshmac		   htdbm		  lsipc			nl-addr-list	    pkcheck		  red			    sotruss		   udevadm			   zmore
+coredumpctl	    firewall-cmd	   htdigest		  lslocks		nl-class-add	    pkexec		  redhat_lsb_init	    spax		   ul				   znew
+cp		    firewall-offline-cmd   htpasswd		  lslogins		nl-class-delete     pkg-config		  rename		    splain		   umask			   zsoelim
+/usr/shell
+
+通过上面的执行结果我们可以知道，命令在子shell中执行时，不会对当前shell有任何的影响，所有的改变仅限于子shell内。例如
+```
+
+
+**通过引用子shell的方式保存空格和换行符**
+
+```text
+使用子shell或者反引用的方法将命令的输出读入一个变量当中，可以将它放入双引号中，以保留空格和换行符(\n).
+例子：
+[root@xx shell]# out=$(cat test.txt)
+[root@xx shell]# echo $out
+1 2 3 #换行符和空格丢失
+为了保留换行符或者空格，可以使用将输出加上双引号
+[root@xx shell]# out="$(cat test.txt)"
+[root@xx shell]# echo "$out"
+1
+
+2
+
+3
+```
+
+**以不按回车键的方式读取字符"n"**
+```text
+  read是一个重要的Bash命令，用于从键盘或者标准输入中读取文本。我们可以使用read以交互的形式来读取来自用户的输入。
+例子：
+#限制输入的字符串
+[root@xx shell]# read -n 3 var
+abc[root@xx shell]# echo $var
+abc
+# 显示提示信息
+[root@xx shell]# read -p "Please enter:" var
+Please enter:adbcfrrfradasda
+[root@xx shell]# echo $var
+adbcfrrfradasda
+# 添加输入时效
+[root@xx shell]# read -t 2 var
+[root@xx shell]# read -d ":" var
+asdhajdhsadasd:[root@xx shell]# echo $var
+asdhajdhsadasd
+[root@xx shell]# 
+
+```
+
+## 字段分隔符和迭代器
+```text
+  内部字段分隔符(Internal Field Separator,简称IFS)是shell脚本中的一个重要的概念。在处理文本时，它是相当有用的。
+IFS默认之位空白字符串(换行符，指标符或者空格)。
+
+
+
+例子：
+#!/bin/bash
+data="name,sex,rollno,location"
+oldIFS=$IFS
+IFS=,NOEW,
+for item in $data;
+do
+echo Item: $item
+done
+IFS=$oldIFS
+执行结果:
+[root@xx shell]# ./ifsTest.sh 
+Item: name
+Item: sex
+Item: rollno
+Item: location
+
+例子2：
+#!/bin/bash
+line="root:x:0:0:root:/root:/bin/bash"
+oldIFS=$IFS;
+IFS=":"
+count=0
+for item in $line;
+do
+[ $count -eq 0 ] && user=$item;
+[ $count -eq 6 ] && shell=$item;
+let count++
+done;
+IFS=$oldIFS
+echo $user\'s shell is $shell;
+执行结果:
+[root@xx shell]# ./ifsTest2.sh 
+root's shell is /bin/bash
+
+
+
+```
 
 
 
