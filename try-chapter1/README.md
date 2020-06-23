@@ -664,10 +664,14 @@ echo $user\'s shell is $shell;
 执行结果:
 [root@xx shell]# ./ifsTest2.sh 
 root's shell is /bin/bash
-
-
-
 ```
+
+
+
+
+
+
+
 
 
 
