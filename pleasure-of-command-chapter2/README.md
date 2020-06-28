@@ -263,11 +263,13 @@ find可以使用"!"实现参数否定
 ./out
 ./exportFunction.sh
 ./timing.log
-
-6. 基于目录的深度的搜索
+```
+**6. 基于目录的深度的搜索**
+```text
 这个一般使用 -maxdept和-mindept选项来实现深度
-
-7. 根据文件类型进行搜索
+```
+**7. 根据文件类型进行搜索**
+```text
 类UNIX系统将一些都视为文件，文件具有不同的类型(普通文件，目录，字符设备，块设备，符号连接，硬连接)
 -type可以对文件搜索进行过滤。
 例子:
@@ -276,12 +278,241 @@ find可以使用"!"实现参数否定
 ./demo
 ./demo/demo2
 ./demo/demo.txt
+```
+**8. 根据文件时间进行搜索**
+```text
+UNIX/Linux文件系统中的每一个文件都有三种时间戳：
+* 访问时间(-atime):用户最近一次访问文件的时间
+* 修改时间(-mtime):文件内容最后一次被修改的时间
+* 变化时间(-ctime):文件元素数据(metadata,例如权限或所有权)最后一次修改的时间
+在Unix系统中并没有"创建时间"的概念. -atime,-mtime,-ctime可作为find的时间参数，它们可以整数值给出，单位是天。这些整数值通常还带有
+-或者+:-表示小于，+表示大于.
+例子：
+1.打印出现在最近七天内被访问过的所有文件:
+    [root@xx shell]# find . -type f -atime -7 -print
+    ./subScript.sh
+    ./subShell.sh
+    ./error.txt
+    ./redirectionFile.sh
+    ./myDate.sh
+    ./ifsTest2.sh
+    ./demo/demo2/demo.txt
+    ./test.txt
+    ./sleep.sh
+    ./TEST.txt
+    ./demo.pdf
+    ./arithmetic.sh
+    ./output.session
+    ./log.txt
+    ./success_test.sh
+    ./ifsTest.sh
+    ./debugScript.sh
+    ./out
+    ./exportFunction.sh
+    ./temp.txt
+    ./stderr.txt
+    ./timing.log
+    ./stdout.txt
+    ./out.txt
 
+2. 打印恰好在七天前被访问过的文件
+    [root@xx shell]# find . -type f -atime 7 -print
+    ./variables.sh
+    
+3. 打印访问时间超过七天的所有文件
+    [root@xx shell]# find . -type f -atime +7 -print    
+```
+
+**9. 基于文件大小的搜索**
+```text
+文件大小的单元:
+* b ----- 块(512字节) 
+* c ----- 字节
+* w ------ 字
+* k ------ 千字节
+* M ------ 兆字节
+* G ------- 吉字节
+
+1. 根据文件的大小，可以这样搜索：
+find . -type f -size +2k #大于2KB的文件
+find . -type f -size 2k #等于2KB的文件
+find . -type f -size -2k #小于2KB的文件
+```
+
+**10. 删除匹配的文件**
+```text
+[root@xx shell]# find . -type f -name "*.pdf" -delete
+```
+**11. 基于文件权限和所有权的匹配**
+```text
+文件匹配可以根据文件权限进行。列出具有特定的权限的所有文件：
+find . -type f -perm 644 -print #打印权限为644的文件
+```
+**12. 结合find执行命令或者动作**
+```text
+  find命令可以借助选项-exec与其他命令进行结合。-exec算得上是find最强大的特性之一了。这个选项可以指定相关的操作
+例子(将属于root用户的文件赋权给chendom)：
+find . -type f -user root -exec chown chendom {} \;
+-exec  参数后面跟的是 command 命令，它的终止是以“；”为结束标志的，所以这句命令后面的分号是不可缺少的，考虑到各个系统中分号会有不同的意义，所以前面加反斜杠。　　
+{} 花括号代表前面find查找出来的文件名。
+例子:
+[root@xx shell]# find . -type f -name "*.txt" -exec printf "Text file: %s\n" {} \;
+Text file: ./error.txt
+Text file: ./demo/demo2/demo.txt
+Text file: ./test.txt
+Text file: ./TEST.txt
+Text file: ./log.txt
+Text file: ./temp.txt
+Text file: ./stderr.txt
+Text file: ./stdout.txt
+Text file: ./out.txt
+
+
+注意: 我们不能在-exec参数中直接使用多个命令，它只能够接收单个命令，不过我们可以用一个小手段来实现，将命令放入shell脚本里面
+-exec ./commands.sh {} \;
+```
+
+**13. 让find跳过待定的目录**
+```text
+  在搜索目录并执行某些操作的时候，有时候为了提高性能，需要跳过一些子目录。将某些文件或者目录从搜索过程中排除的技术被称为"修剪".
+例子:
+find devl/source_path \( -name ".git" -prune \) -o \( -type f -print \)
+这里\( -name ".git" -prune \)的作用是用于进行排除，它指明了.git目录应该被排除掉，而
+例子2(忽略所有以txt结尾的文件)：
+[root@xx shell]# find /usr/shell \( -name "*.txt" -prune \) -o \( -type f -print \)
+/usr/shell/subScript.sh
+/usr/shell/subShell.sh
+/usr/shell/redirectionFile.sh
+/usr/shell/myDate.sh
+/usr/shell/ifsTest2.sh
+/usr/shell/sleep.sh
+/usr/shell/variables.sh
+/usr/shell/arithmetic.sh
+/usr/shell/example
+/usr/shell/output.session
+/usr/shell/success_test.sh
+/usr/shell/ifsTest.sh
+/usr/shell/debugScript.sh
+/usr/shell/out
+/usr/shell/exportFunction.sh
+/usr/shell/timing.log
+/usr/shell/test.md5
+```
+
+## 玩转xargs
+```text
+  我们可以使用管道将一个命令的stdout(标准输出)重定向到另一个命令的stdin(标准输入)。例如：cat foo.txt | grep "test"
+  但是，这些命令只能以命令行参数的形式接收数据，而无法通过stdin接收数据流。在这种情况下，我们没有把那使用管道来提高那些只有通过
+命令行参数才能提供的数据。此时xargs就可以发挥它的作用了。它擅长将白标准的输入数据转换称为命令行的参数.xargs能够处理stdin并将其转
+换为特定命令的命令行的参数。xargs还可以将单行的或者多行的文本输入转换称为其他的格式，例如单行变多行的或者是多行变单行。
+
+一. 将多行输入转换为单行输入出
+
+例子：
+[root@xx shell]# cat test.txt 
+1
+
+2
+
+3
+[root@xx shell]# cat test.txt |xargs
+1 2 3
+
+二.将单行输入转换为多行输出
+  指定每行最大的参数数量n,我们可以将任何来自stdin的文件划分成多行，每行n个参数，每一个参数都是由""(空格)隔开的字符串
+空格是默认的定界符。
+例子：
+[root@xx shell]# cat test.txt |xargs -n 2
+1 2
+3
+```
+
+**xargs的工作原理**
+```text
+  xargs命令拥有数量众多的而且用法接单的选项，这使得它恨适用于某些问题的场合。
+1. 使用自己的定界符来分隔参数，用-d选项为输入指定一个定制的定界符:
+[root@xx shell]# echo "splitXsplitXsplitXsplit" |xargs -d X
+split split split split
+
+2. 同时我们还可以结合-n选项将显示的参数列为多行
+[root@xx shell]# echo "splitXsplitXsplitXsplit" |xargs -d X -n 2
+split split
+split split
+
+3. 如果我们需要不同的入参，就会发现变得比较麻烦，但是使用xargs可以让我们的工作变得轻松优雅
+[root@xx shell]# cat args.txt |xargs -n 1 ./cecho.sh 
+arg1#
+arg2#
+arg3#
+
+pleasure-of-command-chapter2/files/args.txt
+pleasure-of-command-chapter2/files/cecho.sh
+
+4. 上面的这个使用让我们看到了使用args在变化的部分的显示，如果存在不变化的部分，就需要使用-I选项，-I {}指定替换字符串。对于每一个命令参数，字符串{}
+都会被从stdin读取到的参数所替换。
+例子：
+[root@xx shell]# cat args.txt |xargs -I {} ./cecho.sh -p {} -l 
+-p arg1 -l#
+-p arg2 -l#
+-p arg3 -l#
+```
+
+**结合find使用xargs**
+ ```text
+  xargs和find算是一堆死党。两者结合使用可以让任务变得更加的轻松。不过人们通常确实以一种错误的组合方式使用它们。
+例如： find . -type f -name "*.txt" -print |xargs rm -f这样做和危险。有时可能会删除不必要的删除的文件。我们没法预测
+分隔的find命令的输出结果的定界符究竟是'\n'还是 ' '。如果文件名字中间存在' '或者是其他特殊符号，那么可能会误删。
+
+1. 统计文件的个数
+[root@xx shell]# find /usr/shell -type f -name "*.txt" -print0 | xargs -0 wc -l
+   2 /usr/shell/error.txt
+   0 /usr/shell/demo/demo2/demo.txt
+   7 /usr/shell/test.txt
+   0 /usr/shell/TEST.txt
+   3 /usr/shell/args.txt
+   3 /usr/shell/log.txt
+ 177 /usr/shell/temp.txt
+   1 /usr/shell/stderr.txt
+   1 /usr/shell/example.txt
+   1 /usr/shell/stdout.txt
+  25 /usr/shell/out.txt
+ 220 total
 
 ```
 
+**结合stdin，巧妙使用while语句和子shell**
+```shell script
+[root@xx shell]# cat args.txt | { while read arg; do echo $arg; done }
+arg1
+arg2
+arg3
+<<======>>cat args.txt | xargs -I {} echo {}
+子shell内部的多个命令可以作为一个整体来允许
+cmd0 | (cmd1|cmd2;cmd3) | cmd4
+如果cmd1是cd /,那么就会改变子shell工作目录，然而这种改变仅仅局限于子shell内部。cmd4则完全不知道工作目录发生变化了。
 
+```
 
+## 使用tr进行转换
+
+```text
+  tr是unix命令行行家工具箱中以减精美的小工具。她经常用来给编写又没得单行命令，具有很大得作用。tr可以对来自标准输入得字符进行替换，删除以及压缩。它可以将一组
+字符变成另一组字符，因此通常也被称为转换（translate）命令。
+  tr只能通过stdin(标准输入)，二无法通过命令行参数接受输入。它的调用格式如下：
+tr [options] set1 set2 将来自stdin的输入字符从set1映射到set2，并将其输出写入stdout(标准输出)。set1和set2是字符类或者字符集。如果
+两个字符集的长度不相等，那么set2会不断重复其最后一个字符，知道长度与set1相同，如果set2的长度大于set1，那么在set2中超粗set1长度的那
+部分字符则全部被忽略。
+例子(将小写转化为大写)：
+[root@xx shell]# echo "hello world" |tr 'a-z' 'A-Z'
+HELLO WORLD
+在上面的例子当中'a-z' 'A-Z'都是合法的字符集，定义集合也和简单，不需要我们写一长串的字符，只需要起始字符和终结字符，
+ROT13加密
+[root@xx shell]# echo 123432 | tr '0-9' '9876543210'
+876567
+[root@xx shell]# echo 876567 | tr '9876543210' '0-9'
+123432
+
+```
 
 
 
