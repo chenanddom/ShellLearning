@@ -99,12 +99,82 @@ mkdir -p  demo/demo2
 ```
 
 ## 文件权限，所有权和粘滞位
-```text
+```shell script
   文件权限和所有权是UNIX/Linux文件系统(入ext文件系统)最显著的特性之一。在UNIX/Linux平台工作时，我们经常会碰到于文件权限以及所
 有全相关的问题。这则攻略就考察了文件权限和所有权不同用例。
-  
+  我们通常要和三类权限打交道(用户，用户组以及其他实体)，用户(user)是文件的所有者。用户组(group)是多个用户的集合，系统允许这些用户进行
+某些形式的访问。其他用户(other)是除用户或者用户组之外的任何用户。
+1. 查看文件的类型：
+[root@xx shell]# ls -l
+total 252
+-rw-r--r-- 1 root root     15 Jun 28 10:56 args.txt
+-rwxrwxrwx 1 root root   1146 Jun 16 14:09 arithmetic.sh
+-rwxrwxrwx 1 root root     24 Jun 28 10:13 cecho.sh
+-rw-r--r-- 1 root root     40 Jun 30 10:07 data3.txt
+第一列的表示的文件的类型
+* "-":普通文件
+* "d":目录
+* "c":字符设备
+* "b":块设备
+* "l":符合连接
+* "s":套接字
+* "p":管道
+
+2.给文件赋权
+
+为了给文件设置权限，可以使用chmod命令
+例子： chmod u=rwx g=rw o=r filename
+我们也可以使用+对用户权限进行添加，使用-删除用户的权限
+
+读，写，执行都有与之对应的八进制数:
+* r--=4
+* -w-=2
+* --x=1
+3. 更改所有权
+chown user.group filename
+
+4.设置粘滞位
+  粘滞位是一种应用于目录的权限类型。通过设置粘滞位，使得只有目录的所有者才能够删除目录中的文件，即使用户组合其他用户拥有足够的权
+限也不能执行该删除的操作。
+
+5.以递归的方式设置权限
+有些特殊的情况需要在目录下面对某些文件进行递归来修改文件的权限
+chmod 777 . -R
+例子：
+[root@xx demo]# ll
+total 8
+drwxr-xr-x 2 root root 4096 Jul  6 11:35 demo2
+drwxr-xr-x 2 root root 4096 Jul  6 10:29 renameFiles
+[root@xx demo]# chmod 777 . -R
+[root@xx demo]# ll
+total 8
+drwxrwxrwx 2 root root 4096 Jul  6 11:35 demo2
+drwxrwxrwx 2 root root 4096 Jul  6 10:29 renameFiles
+[root@xx demo]# cd renameFiles/
+[root@xx renameFiles]# ll
+total 8
+-rwxrwxrwx 1 root root  14 Jul  6 09:00 hello_world.txt
+-rwxrwxrwx 1 root root 163 Jul  6 10:29 renameFile.sh
+
+6. 以递归的方式设置所有权
+chown user.group . -R
 ```
 
+## 创建不可修改的文件
+```text
+  在常见的Linux扩展文件系统中(如ext2,ext3,ext4等)，可以将文件设置为不可修改的(immutable)。某些文件属性可以帮助我们将文件设置为
+不可修改的。一旦文件被设置为不可修改，任何用户，包括着急用户都不能删除文件，除非其不可修改的属性被移除。通过查看/etc/mtab文件，很
+容易找出所有挂载分区的文件系统的类型。
+  我们可以使用chattr将文件设置为不可修改。不过chattr能够更改的扩展属性可不止这个，a（仅追加）、c（压缩）、d（不转储）、
+i（不可更改）、j（数据日志）、s（安全删除）、t（无尾部合并）、u（不可删除）、A（不更新访问时间atime）、D（同步目录更新）、
+S（同步更新）和T（目录层级结构顶部）
+例子：
+[root@xx renameFiles]# chattr +i chattrDemo 
+[root@xx renameFiles]# vim chattrDemo 
+效果入下图所示
 
+```
+![chattr设置文件不可修改](files/chattrfile.png)
+ 
 
 
