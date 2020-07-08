@@ -512,6 +512,407 @@ ROT13加密
 [root@xx shell]# echo 876567 | tr '9876543210' '0-9'
 123432
 
+
+补充：
+1. 用tr删除字符
+tr有一个选项-d，可以通过指定需要被删除的字符集合，将出现再stdin中的特定字符清除掉：
+cat file.txt | tr -d "[set1]"
+例子：
+[root@xx shell]# echo "Hello 123 word 456" |tr -d '0-9'
+Hello  word 
+
+2. 字符集补集
+我们可以利用选项-c来使用set1的补集。-c [set] 等同于定义了一个集合(补集),这个集合中的字符不包含[set]中：
+tr -c [set1] [set2] set1的补集意味着这个集合中包含set1中没有的所有的字符(不急包含数字，空格字符和换行符至海外的所有字符)
+例子：
+[root@xx shell]# echo hello 1 char 2 next 4 | tr -d -c '0-9 \n'#指定了-d标识会被删除
+ 1  2  4
+
+3. 用tr压缩字符
+    tr命令再很多文本处理的环境中是非常有用的，连续重读的字符是会被要锁称为单个字符，而经常需要进行的一项任务就需要压缩成单个字符
+而经常需要进行的一项任务就是压缩空白字符。
+tr的-s选项可u压缩输入中重复的字符。
+例子：
+[root@xx shell]# echo "GUN      is not Unix,Recursive right=?" | tr -s ' '
+GUN is not Unix,Recursive right=?
+例子2：
+[root@xx shell]# cat test.txt |tr -s '\n'
+1
+2
+3
+4
+[root@xx shell]# cat test.txt | echo $[ $(tr '\n' '+') 0 ]
+10
+```
+## 校验于核实
+```text
+  校验和(checksum)程序用来从文件中生产校验和密钥，然后利用这个校验和密钥合适文件的完整性。一份文件可以通过网络或者任何存储机制分发到不同的
+的地点。处于多种原因，数据又可能再传输的过程中对视了若干位，从而导致文件损坏。通常这种情况会出现在文件下载。最广泛的的校验和技术是md5sum和
+sha1sum。它们对文件内容使用相应的算法来生成校验和。
+例子：
+[root@xx shell]# md5sum test.txt  out.txt > multifile.md5 #将生成的md5校验和重定向到文件
+校验文件是否又变化
+[root@xx shell]# md5sum -c multifile.md5 
+test.txt: OK #说明文件是正常的
+out.txt: OK  #说明文件是正常的
+
+
+```
+
+
+## 排序/单一与重复
+```text
+  在对文本进行操作的时候，总是避免不了要对文本进行排序，那是因为对于文本处理任务而言，排序(sort)可以起到不小的作用。sort命令能够
+帮助我们对文本文件和stdin进行排序操作。通常，它会介个其他的命令来生产需要的输出。uniq是一个经常和sort一同配合使用的命令。它的作用
+是从文本或stdin中提取单一的行。sort和uniq能够查找重复数据。这则攻略将演示sort和uniq命令的大多数用法.
+例子:
+[root@xx shell]# cat test.txt 
+1
+
+2
+
+3
+
+4
+
+8
+7
+6
+5
+4
+[root@xx shell]# cat test.txt |tr -s '\n' | sort -r |uniq>sorted.txt 
+[root@xx shell]# cat sorted.txt 
+8
+7
+6
+5
+4
+3
+2
+1
+
+2. 将文本合并，但是不对文本进行排序
+[root@xx shell]# sort -m sorted.txt test.txt 
+1
+
+2
+
+3
+
+4
+
+8
+7
+6
+5
+4
+3
+2
+1
+8
+7
+6
+5
+4
+
+3. 将列表排序(相关的列表数据看下面的连接)
+[root@xx shell]# sort -nrk 3 data.txt 
+2  huawei  3000
+4  linux  2588
+3  windows  2199
+1  mac  2000
+
+通常情况下，将就是文本文件中的列。列于列之间用空格分开，但是我们需要使用特定范围内的一组字符作为键，这个时候就需要明确地将键指定位某个范围
+的字符，这个范围可以用键起止的字符位置来说明。
+
+```
+
+[将列表排序](files/data.txt)
+
+
+**uniq命令**
+```text
+  uniq命令通过消除重复的内容，从给定输入中(stdin或命令行参数文件)展出单一的一行。它也可以用来找出输入中出现的重复行。uniq只能用于排过
+序的数据输入，因此，uniq要么使用管道，要么将排过序的文件作为输入，并总是以这种方式于sort命令结合起来使用.
+例子:
+[root@xx shell]# cat uniqSort.txt 
+bahs
+foss
+hack
+hack
+[root@xx shell]# uniq uniqSort.txt 
+bahs
+foss
+hack
+<<============>>
+[root@xx shell]# sort -u uniqSort.txt 
+bahs
+foss
+hack
+<<==============>>
+[root@xx shell]# sort uniqSort.txt | uniq
+bahs
+foss
+hack
+
+例子2：(显示只出现过一行的记录)
+[root@xx shell]# sort uniqSort.txt | uniq -u
+bahs
+foss
+例子3(统计各个各个单词的个数)
+[root@xx shell]# sort uniqSort.txt | uniq -c
+      1 bahs
+      1 foss
+      2 hack
+例子4 (查找文件中重复出现的单词)
+[root@xx shell]# sort uniqSort.txt |uniq -d
+hack
+结合-s和-w来指定键
+* -s指定可以跳过得前N个字符
+* -w指定用于比较得最大字符数
+例子(-s指定跳过多少个字符，-w指定用于比较得最大字符数得方式来选的该键)
+[root@xx shell]# sort data3.txt |uniq -s 2 -w 2
+d:04:linux
+u:01:gnu
+u:02:bash
+u:03:hack
+
+uniq结合xargs
+如果我们使用uniq的输出作为xargs的输入，那么最好为输出的隔行添加一个0值字节终止符。在默认的情况下，xargs命令会使用空格作为丁姐符分割参数
+例如："this is a line"在xargs命令会将它们分割称为4个字符。如果使用0值字节作为终止符，那么\0就会被作为定界符，此时可以正确的处理参数
+
+例子5 用uniq生成字符串样式
+
+[root@xx ~]# echo this is a line | sed 's/[^\n\t\f\v]/&\n/g' | sed '/^$/d' | uniq -c | tr -d '\n' |sed 's/[^.]/&\n/g'
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+t
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+h
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+i
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+s
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+i
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+s
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+a
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+l
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+i
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+n
+ 
+ 
+ 
+ 
+ 
+ 
+1
+ 
+e
+
+说明：s///g  是sed中替换的格式 
+      &代表的是前面的匹配的字符
+  
+```
+
+## 临时文件命名于随机数
+```text
+  编写shell脚本的时候，我们经常需要存储临时数据。最合适存储临时数据的位置是/tmp(该目录中的内容在系统重启之后会被清空)。有两种方法可以为
+临时数据生成标准的文件名。
+
+```
+
+## 分割文件和数据
+```text
+  某些特殊的情况下，必须要把文件分割成多个小片段。小片段的文件可以提供可读性和日志。
+例子：
+生成大文件
+[root@xx shell]# dd if=/dev/zero bs=100k count=1 of=/usr/shell/data.file
+可以在/usr/shell/data.file生成为一个大小为100k的文件
+[root@xx shell]# split -b 10k data.file #切分大文件
+[root@xx shell]# ll #可以看到生成了10个切分的文件
+total 360
+...
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xaa
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xab
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xac
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xad
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xae
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xaf
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xag
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xah
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xai
+-rw-r--r-- 1 root root  10240 Jul  3 13:01 xaj
+```
+## 根据扩展名切分文件名
+```text
+  有一些脚本是依据文件名进行各种处理的，我们可能会需要在保留扩展名的同时修改文件名，转换文件格式(保留文件名的同时修改扩展名)或者
+提取部分文件名。shell具有的内建功能可以依据不同的情况来切分文件名.
+  借助%操作符可以轻松的将名称部分从"名称.扩展名"这种格式的文件名中提取出来.
+例子(提取文件名)：
+[root@xx shell]# file_jpg="sample.jpg"
+[root@xx shell]# name=${file_jpg%.*}
+[root@xx shell]# echo File name is:$name
+File name is:sample
+例子2(提取扩展名)：
+[root@xx shell]# extension=${file_jpg#*.}
+[root@xx shell]# echo file extension is ${extension}
+file extension is jpg
+
+
+```
+
+## 批量重命名和移动
+```text
+   rename命令利用Perl正则表达式修改文件名。综合运用find，rename和mv，我们可以完成很多操作.
+```
+```shell script
+#! /bin/bash
+
+count=1;
+for img in *.jpg *.png
+do
+new=image-$count.${img##*.}
+mv "$img" "$new" 2> /dev/null 
+if [ $? -eq 0 ]
+then
+echo "Renaming $img to $new"
+let count++
+fi
+done
+
+执行./rename.sh之后得到的结果：
+#! /bin/bash
+
+count=1;
+for img in *.jpg *.png
+do
+new=image-$count.${img##*.}
+mv "$img" "$new" 2> /dev/null 
+if [ $? -eq 0 ]
+then
+echo "Renaming $img to $new"
+let count++
+fi
+done
+```
+自己的重命名的脚本
+```shell script
+#!/bin/bash
+for file in *.txt
+do
+newFile=$(echo $file|sed 's/&/_/g')
+mv $file $newFile 2> /dev/null
+if [ $? -eq 0 ]
+then
+echo "Renaming $file to $newFile"
+fi
+done                                                                                                                                                                                                                                              
+```
+文件名大小写切换
+```shell script
+for var in *;do mv $file $(echo $file |tr A-Z a-z);done
 ```
 
 
