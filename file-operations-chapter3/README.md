@@ -176,5 +176,99 @@ S（同步更新）和T（目录层级结构顶部）
 ```
 ![chattr设置文件不可修改](files/chattrfile.png)
  
+## 批量生成空白文件
+```text
+  再要文件测试样例的时候，我们使用touch命令可以生成空白文件，如果文件存在，则可以用它修改文件的时间戳。
+使用格式：touch filename
+批量生成名字不同的空白文件:
+for name in (1..100).txt
+do
+touch $name
+done
+注意：如果文件已经存在，那么touch命令将会与该文件相关的所有时间戳更改为当前时间，如果我们只想修改某些时间戳，则可以使用下面的选项
+* touch -a 只更改文件访问时间
+* touch -m 只更改文件内容修改时间
+```
 
+## 查找符号连接及其只想目标
+```shell script
+  在类Unix系统中，符号连接很常见，我们会碰到各种符号连接相关的处理工作。这则攻略可能没有上面实用性，这些方法没准能在编写其他shell
+脚本的时派上用场。符号链接只不过时指向其他文件的指针。它的功能类似于Mac os中的别名或者Windows中的快捷方式,删除符号连接不会影响到
+原始文件.
+我们可以按照下面的方法创建符号链接：
+ln -s target symbolic_link_name
+[root@xx lnTest]#  ln -s /usr/shell/demo/demo2 /usr/shell/demo/lnTest
+[root@xx lnTest]# ll
+total 0
+lrwxrwxrwx 1 root root 21 Jul 10 09:19 demo2 -> /usr/shell/demo/demo2
+
+```
+## 列举文件类型统计信息
+```text
+  文件类型数量繁多，在某些情况下需要能够变量一个目录中所有的文件，并且生成一份关于文件类型细节以及每种文件类型的数量的报告。
+   find命令可以通过查看文件内容来查看文件类型来找出特定类型的文件。在UNIX/Linux系统中，文件类型并不是由文件拓展名决定的，。
+```
+```shell script
+用下面的命令打印文件类型:
+[root@xx shell]# file data3.txt 
+data3.txt: ASCII text
+[root@xx shell]# file images
+images: directory
+
+
+
+
+```
+
+### 环回文件与挂载
+```text
+    环回（loopback）文件系统是Linux类系统中非常有趣的部分。我们通常是在设备上（例如磁
+盘分区）创建文件系统。这些存储设备能够以设备文件的形式来使用，比如 /dev/device_name。
+为了使用存储设备上的文件系统，我们需要将其挂载到一些被称为挂载点（mount point）的目录
+上。环回文件系统是指那些在文件中而非物理设备中创建的文件系统。我们可以将这些文件作为
+文件系统挂载到挂载点上。这实际上可以让我们在物理磁盘上的文件中创建逻辑磁盘。
+
+例子：
+1.创建一个10M大小的文件
+[root@xx loopback]# dd if=/dev/zero of=/usr/shell/loopback/loop_back_file.img bs=10M count=1
+2.mkfs命令将10M的文件格式话成ext4文件系统
+[root@xx loopback]# mkfs.ext4 /usr/shell/loopback/loop_back_file.img
+mke2fs 1.42.9 (28-Dec-2013)
+/usr/shell/loopback/loop_back_file.img is not a block special device.
+Proceed anyway? (y,n) y
+Discarding device blocks: done                            
+Filesystem label=
+OS type: Linux
+Block size=1024 (log=0)
+Fragment size=1024 (log=0)
+Stride=0 blocks, Stripe width=0 blocks
+2560 inodes, 10240 blocks
+512 blocks (5.00%) reserved for the super user
+First data block=1
+Maximum filesystem blocks=10485760
+2 block groups
+8192 blocks per group, 8192 fragments per group
+1280 inodes per group
+Superblock backups stored on blocks: 
+	8193
+
+Allocating group tables: done                            
+Writing inode tables: done                            
+Creating journal (1024 blocks): done
+Writing superblocks and filesystem accounting information: done
+3. 查看文件系统
+[root@xx loopback]# file /usr/shell/loopback/loop_back_file.img
+/usr/shell/loopback/loop_back_file.img: Linux rev 1.0 ext4 filesystem data, UUID=27cd04e5-641c-4ce6-a6a2-d4661a0784af (extents) (64bit) (huge files)
+4. 挂载环回文件
+[root@xx loopback]# mkdir /mnt/lookback
+[root@xx loopback]# mount -o loop /usr/shell/loopback/loop_back_file.img /mnt/lookback/
+-o loop 用来挂载环回文件系统。
+这实际上是一种快捷的挂载方法，我们无需手动连接任何设备。但是在内部，这个
+环回文件连接到了一个名为/dev/loop1或loop2的设备上
+
+
+
+
+
+```
 
